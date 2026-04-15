@@ -1,5 +1,7 @@
 import pygame
-from constants import WIDTH, HEIGHT, BACKGROUND_GREEN
+from constants import WIDTH, HEIGHT
+from board import Board
+from ui import draw_board
 
 # Initialize Pygame
 pygame.init()
@@ -11,25 +13,20 @@ pygame.display.set_caption("Othello AI - Minimax with Alpha-Beta Pruning")
 def main():
     run = True
     clock = pygame.time.Clock()
+    
+    # Initialize the board state
+    game_board = Board()
 
     while run:
-        # Cap the frame rate at 60 FPS
         clock.tick(60) 
         
         # Event handler
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            
-            # We will handle mouse clicks here later
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pass
 
-        # Draw the background
-        WIN.fill(BACKGROUND_GREEN)
-        
-        # Update the display
-        pygame.display.update()
+        # Draw the board and pieces
+        draw_board(WIN, game_board)
 
     pygame.quit()
 
