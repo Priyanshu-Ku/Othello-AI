@@ -3,6 +3,7 @@ import math
 from constants import WIDTH, HEIGHT, SQUARE_SIZE, BLACK, WHITE
 from board import Board
 from ui import draw_board
+from ui import draw_game_over # Import the new game over drawing function
 from ai import minimax # Import our new AI function
 
 pygame.init()
@@ -27,9 +28,28 @@ def main():
         
         valid_moves = game_board.get_valid_moves(current_turn)
         
+        # --- NEW GAME OVER LOGIC ---
         if not valid_moves:
-            current_turn = WHITE if current_turn == BLACK else BLACK
-            valid_moves = game_board.get_valid_moves(current_turn)
+            # If current player has no moves, check the other player
+            next_turn = WHITE if current_turn == BLACK else BLACK
+            next_valid_moves = game_board.get_valid_moves(next_turn)
+            
+            if not next_valid_moves:
+                # NEITHER player has moves. Game Over.
+                black_score, white_score = game_board.get_score()
+                draw_board(WIN, game_board) # Draw final board
+                from ui import draw_game_over # Ensure this is imported at the top ideally
+                draw_game_over(WIN, black_score, white_score)
+                
+                # Wait a few seconds then quit, or wait for user to close window
+                pygame.time.delay(5000)
+                run = False
+                continue
+            else:
+                # Pass turn
+                current_turn = next_turn
+                valid_moves = next_valid_moves
+        # ---------------------------
 
         # --- AI TURN (BLACK) ---
         if current_turn == BLACK and valid_moves:

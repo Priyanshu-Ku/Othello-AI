@@ -56,3 +56,15 @@ class Board:
         # Flip the trapped pieces
         for r, c in flipped_pieces:
             self.grid[r][c] = color
+            
+    
+    def get_score(self):
+        black_score = 0
+        white_score = 0
+        for row in range(ROWS):
+            for col in range(COLS):
+                if self.grid[row][col] == BLACK:
+                    black_score += 1
+                elif self.grid[row][col] == WHITE:
+                    white_score += 1
+        return black_score, white_score

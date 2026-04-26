@@ -1,4 +1,5 @@
 import pygame
+pygame.font.init()
 from constants import WIDTH, HEIGHT, ROWS, COLS, SQUARE_SIZE, LINE_COLOR, BLACK_PIECE, WHITE_PIECE, BACKGROUND_GREEN, BLACK
 
 def draw_grid(win):
@@ -28,4 +29,25 @@ def draw_board(win, board):
     win.fill(BACKGROUND_GREEN)
     draw_grid(win)
     draw_pieces(win, board)
+    pygame.display.update()
+    
+def draw_game_over(win, black_score, white_score):
+    font = pygame.font.SysFont("arial", 40, bold=True)
+    
+    if black_score > white_score:
+        message = f"AI Wins! Black: {black_score} | White: {white_score}"
+    elif white_score > black_score:
+        message = f"You Win! Black: {black_score} | White: {white_score}"
+    else:
+        message = f"Tie Game! Score: {black_score}"
+
+    # Render the text
+    text = font.render(message, True, (255, 0, 0)) # Red text
+    
+    # Create a semi-transparent background box for readability
+    bg_rect = pygame.Rect(WIDTH//2 - text.get_width()//2 - 10, HEIGHT//2 - text.get_height()//2 - 10, text.get_width() + 20, text.get_height() + 20)
+    pygame.draw.rect(win, (0, 0, 0), bg_rect)
+    
+    # Draw the text
+    win.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
     pygame.display.update()
