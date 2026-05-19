@@ -26,18 +26,40 @@ def main():
     while run:
         clock.tick(60) 
         
-        # Continuously render layout updates passing dashboard states
         draw_board(WIN, game_board, current_turn, game_started)
 
         if game_started:
+            # ==============================================================
+            # NEW: EARLY TERMINATION DETECTOR (No Fruitful Comeback Possible)
+            # ==============================================================
+            black_score, white_score = game_board.get_score()
+            empty_squares = game_board.get_empty_count()
+
+            # If AI is winning, check if White can mathematically catch up
+            if black_score > white_score and (white_score + empty_squares) < black_score:
+                draw_board(WIN, game_board, current_turn, game_started)
+                draw_game_over(WIN, black_score, white_score)
+                pygame.time.delay(5000)
+                run = False
+                continue
+
+            # If White is winning, check if AI can mathematically catch up
+            if white_score > black_score and (black_score + empty_squares) < white_score:
+                draw_board(WIN, game_board, current_turn, game_started)
+                draw_game_over(WIN, black_score, white_score)
+                pygame.time.delay(5000)
+                run = False
+                continue
+            # ==============================================================
+
             valid_moves = game_board.get_valid_moves(current_turn)
             
+            # Standard Othello block for handling skipped turns or filled boards
             if not valid_moves:
                 next_turn = WHITE if current_turn == BLACK else BLACK
                 next_valid_moves = game_board.get_valid_moves(next_turn)
                 
                 if not next_valid_moves:
-                    black_score, white_score = game_board.get_score()
                     draw_board(WIN, game_board, current_turn, game_started)
                     draw_game_over(WIN, black_score, white_score)
                     pygame.time.delay(5000)
@@ -46,6 +68,7 @@ def main():
                 else:
                     current_turn = next_turn
                     valid_moves = next_valid_moves
+
 
             # --- AI TURN (BLACK) ---
             if current_turn == BLACK and valid_moves:

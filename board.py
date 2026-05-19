@@ -68,3 +68,11 @@ class Board:
                 elif self.grid[row][col] == WHITE:
                     white_score += 1
         return black_score, white_score
+    
+    def get_empty_count(self):
+        empty_count = 0
+        for row in range(ROWS):
+            for col in range(COLS):
+                if self.grid[row][col] == EMPTY:
+                    empty_count += 1
+        return empty_count
