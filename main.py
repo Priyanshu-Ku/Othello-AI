@@ -1,10 +1,9 @@
 import pygame
 import math
-from constants import WIDTH, HEIGHT, SQUARE_SIZE, BLACK, WHITE
+from constants import WIDTH, HEIGHT, BOARD_HEIGHT, SQUARE_SIZE, BLACK, WHITE
 from board import Board
-from ui import draw_board
-from ui import draw_game_over # Import the new game over drawing function
-from ai import minimax # Import our new AI function
+from ui import draw_board, draw_game_over
+from ai import minimax
 
 pygame.init()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -21,64 +20,63 @@ def main():
     clock = pygame.time.Clock()
     game_board = Board()
     
-    current_turn = BLACK # AI goes first
+    current_turn = BLACK 
+    game_started = False  # Set to True when the panel button is pressed
 
     while run:
         clock.tick(60) 
         
-        valid_moves = game_board.get_valid_moves(current_turn)
-        
-        # --- NEW GAME OVER LOGIC ---
-        if not valid_moves:
-            # If current player has no moves, check the other player
-            next_turn = WHITE if current_turn == BLACK else BLACK
-            next_valid_moves = game_board.get_valid_moves(next_turn)
+        # Continuously render layout updates passing dashboard states
+        draw_board(WIN, game_board, current_turn, game_started)
+
+        if game_started:
+            valid_moves = game_board.get_valid_moves(current_turn)
             
-            if not next_valid_moves:
-                # NEITHER player has moves. Game Over.
-                black_score, white_score = game_board.get_score()
-                draw_board(WIN, game_board) # Draw final board
-                from ui import draw_game_over # Ensure this is imported at the top ideally
-                draw_game_over(WIN, black_score, white_score)
+            if not valid_moves:
+                next_turn = WHITE if current_turn == BLACK else BLACK
+                next_valid_moves = game_board.get_valid_moves(next_turn)
                 
-                # Wait a few seconds then quit, or wait for user to close window
-                pygame.time.delay(5000)
-                run = False
-                continue
-            else:
-                # Pass turn
-                current_turn = next_turn
-                valid_moves = next_valid_moves
-        # ---------------------------
+                if not next_valid_moves:
+                    black_score, white_score = game_board.get_score()
+                    draw_board(WIN, game_board, current_turn, game_started)
+                    draw_game_over(WIN, black_score, white_score)
+                    pygame.time.delay(5000)
+                    run = False
+                    continue
+                else:
+                    current_turn = next_turn
+                    valid_moves = next_valid_moves
 
-        # --- AI TURN (BLACK) ---
-        if current_turn == BLACK and valid_moves:
-            # depth=3 is a good balance of speed and smarts. Higher depth = smarter but slower.
-            # alpha is negative infinity, beta is positive infinity initially
-            score, move = minimax(game_board, 3, -math.inf, math.inf, True, BLACK)
-            
-            if move:
-                # The AI chose a move, execute it!
-                pygame.time.delay(500) # Add a small delay so the AI doesn't move instantly (looks better)
-                pieces_to_flip = valid_moves[move]
-                game_board.place_piece(move[0], move[1], BLACK, pieces_to_flip)
-                current_turn = WHITE
+            # --- AI TURN (BLACK) ---
+            if current_turn == BLACK and valid_moves:
+                score, move = minimax(game_board, 3, -math.inf, math.inf, True, BLACK)
+                if move:
+                    pygame.time.delay(500)
+                    pieces_to_flip = valid_moves[move]
+                    game_board.place_piece(move[0], move[1], BLACK, pieces_to_flip)
+                    current_turn = WHITE
 
-        # --- HUMAN TURN (WHITE) ---
+        # --- EVENT HANDLING LOOP ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             
-            if event.type == pygame.MOUSEBUTTONDOWN and current_turn == WHITE:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                row, col = get_row_col_from_mouse(pos)
                 
-                if (row, col) in valid_moves:
-                    pieces_to_flip = valid_moves[(row, col)]
-                    game_board.place_piece(row, col, WHITE, pieces_to_flip)
-                    current_turn = BLACK
-
-        draw_board(WIN, game_board)
+                if not game_started:
+                    # Check button geometry context: (WIDTH // 2 - 80 <= x <= WIDTH // 2 + 80)
+                    # and (BOARD_HEIGHT + 25 <= y <= BOARD_HEIGHT + 75)
+                    if (WIDTH // 2 - 80 <= pos[0] <= WIDTH // 2 + 80) and (BOARD_HEIGHT + 25 <= pos[1] <= BOARD_HEIGHT + 75):
+                        game_started = True
+                else:
+                    # Capture moves strictly inside the board quadrant area
+                    if pos[1] < BOARD_HEIGHT and current_turn == WHITE:
+                        row, col = get_row_col_from_mouse(pos)
+                        if (row, col) in valid_moves:
+                            pieces_to_flip = valid_moves[(row, col)]
+                            game_board.place_piece(row, col, WHITE, pieces_to_flip)
+                            current_turn = BLACK
 
     pygame.quit()
 
