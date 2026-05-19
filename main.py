@@ -49,26 +49,45 @@ def main():
 
             # --- AI TURN (BLACK) ---
             if current_turn == BLACK and valid_moves:
-                # 1. Update panel to show the AI is calculating
+                # ==============================================================
+                # PHASE 1: THE THINK PHASE (Visual Warning Before Calculation)
+                # ==============================================================
+                # Redraw the current board state
                 draw_board(WIN, game_board, current_turn, game_started)
                 
-                # If you want to explicitly show a "Thinking..." text, we can let Pygame refresh
+                # Render the "AI is thinking..." overlay text
                 font = pygame.font.SysFont("arial", 22, bold=True)
-                thinking_text = font.render("AI is thinking...", True, (255, 69, 0)) # Orange-Red text
-                # Overwrite the middle section of the panel briefly
+                thinking_text = font.render("AI is thinking...", True, (255, 69, 0)) # Orange-Red
                 pygame.draw.rect(WIN, (40, 40, 40), (WIDTH // 2 - 100, BOARD_HEIGHT + 25, 200, 50))
                 WIN.blit(thinking_text, (WIDTH // 2 - thinking_text.get_width() // 2, BOARD_HEIGHT + 35))
                 pygame.display.update()
+                
+                # Pause for 600ms BEFORE computing so the user actually reads the text
+                pygame.time.delay(600) 
 
-                # 2. Run the Minimax search tree evaluation
+                # ==============================================================
+                # PHASE 2: THE ACTION PHASE (Compute, Move, and Highlight)
+                # ==============================================================
+                # Now run the Minimax search tree evaluation
                 score, move = minimax(game_board, 3, -math.inf, math.inf, True, BLACK)
                 
                 if move:
-                    # Increase delay to 1500ms (1.5 seconds) for a natural human-like pace
-                    pygame.time.delay(1500) 
-                    
                     pieces_to_flip = valid_moves[move]
+                    # Execute the piece placement and flip logic
                     game_board.place_piece(move[0], move[1], BLACK, pieces_to_flip)
+                    
+                    # Redraw the updated board state with the gold highlight ring
+                    draw_board(WIN, game_board, current_turn, game_started, highlight_pos=move)
+                    
+                    # Re-render the text to maintain visual consistency on the panel
+                    pygame.draw.rect(WIN, (40, 40, 40), (WIDTH // 2 - 100, BOARD_HEIGHT + 25, 200, 50))
+                    WIN.blit(thinking_text, (WIDTH // 2 - thinking_text.get_width() // 2, BOARD_HEIGHT + 35))
+                    pygame.display.update()
+                    
+                    # Pause for 1200ms AFTER the move so the gold ring highlight can be analyzed
+                    pygame.time.delay(1200) 
+                    
+                    # Shift turn context back to the player
                     current_turn = WHITE
 
         # --- EVENT HANDLING LOOP ---
