@@ -49,9 +49,24 @@ def main():
 
             # --- AI TURN (BLACK) ---
             if current_turn == BLACK and valid_moves:
+                # 1. Update panel to show the AI is calculating
+                draw_board(WIN, game_board, current_turn, game_started)
+                
+                # If you want to explicitly show a "Thinking..." text, we can let Pygame refresh
+                font = pygame.font.SysFont("arial", 22, bold=True)
+                thinking_text = font.render("AI is thinking...", True, (255, 69, 0)) # Orange-Red text
+                # Overwrite the middle section of the panel briefly
+                pygame.draw.rect(WIN, (40, 40, 40), (WIDTH // 2 - 100, BOARD_HEIGHT + 25, 200, 50))
+                WIN.blit(thinking_text, (WIDTH // 2 - thinking_text.get_width() // 2, BOARD_HEIGHT + 35))
+                pygame.display.update()
+
+                # 2. Run the Minimax search tree evaluation
                 score, move = minimax(game_board, 3, -math.inf, math.inf, True, BLACK)
+                
                 if move:
-                    pygame.time.delay(500)
+                    # Increase delay to 1500ms (1.5 seconds) for a natural human-like pace
+                    pygame.time.delay(1500) 
+                    
                     pieces_to_flip = valid_moves[move]
                     game_board.place_piece(move[0], move[1], BLACK, pieces_to_flip)
                     current_turn = WHITE
